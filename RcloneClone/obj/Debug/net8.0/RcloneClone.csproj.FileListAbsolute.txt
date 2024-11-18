@@ -1,0 +1,11 @@
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/bin/Debug/net8.0/RcloneClone
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/bin/Debug/net8.0/RcloneClone.dll
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/bin/Debug/net8.0/RcloneClone.pdb
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.GeneratedMSBuildEditorConfig.editorconfig
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.AssemblyInfoInputs.cache
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.AssemblyInfo.cs
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.csproj.CoreCompileInputs.cache
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.dll
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/refint/RcloneClone.dll
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.pdb
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.csproj.AssemblyReference.cache
