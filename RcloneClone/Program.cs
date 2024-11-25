@@ -36,6 +36,7 @@ class Program
             }
             else if (userInput == "sync")
             {
+                Console.Clear();
                 int successfulyUploaded = 0;
                 int failedToUpload = 0;
                 foreach (string file in Directory.EnumerateFiles(Path.Combine(homePath), "*.*",
@@ -58,9 +59,14 @@ class Program
                 }
                 if (failedToUpload==0)
                 {
-                    Console.WriteLine($"Successfully synced all {successfulyUploaded} files in {homePath}!");
+                    Console.WriteLine($"Successfully synced all files in {homePath}! Uploaded {successfulyUploaded} files.");
+                    Console.ReadKey();
                 }
-                Console.WriteLine($"Failed to sync all files in the directory, {failedToUpload} files failed to upload!");
+                else if (failedToUpload>0)
+                {
+                    Console.WriteLine($"Failed to sync all files in the directory, {failedToUpload} files failed to upload!");
+                    Console.ReadKey();
+                }
             }
         }
     }

@@ -111,13 +111,13 @@ internal class SyncManager()
             return BitConverter.ToString(finalHash).Replace("-", "").ToLower();
         }
     }
-
     public async Task<bool> CompareMetaData(string fileLocation)
     {
         string localFile = await LocalMetaData(fileLocation);
         string dropBoxFile = await CheckMetaData(fileLocation);
         if (localFile == dropBoxFile)
         {
+            Console.WriteLine($"Metadata match on file {fileLocation}");
             return true;
         }
         return false;
