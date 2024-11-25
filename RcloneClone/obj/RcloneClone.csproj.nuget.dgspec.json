@@ -13,6 +13,7 @@
         "packagesPath": "/home/aleks/.nuget/packages/",
         "outputPath": "/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "configFilePaths": [
           "/home/aleks/.nuget/NuGet/NuGet.Config"
         ],
@@ -46,6 +47,10 @@
             "Dropbox.Api": {
               "target": "Package",
               "version": "[7.0.0, )"
+            },
+            "MimeMapping": {
+              "target": "Package",
+              "version": "[3.0.1, )"
             }
           },
           "imports": [

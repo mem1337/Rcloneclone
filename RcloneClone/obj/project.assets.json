@@ -18,6 +18,19 @@
           }
         }
       },
+      "MimeMapping/3.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/MimeMapping.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/MimeMapping.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Newtonsoft.Json/13.0.2": {
         "type": "package",
         "compile": {
@@ -45,6 +58,22 @@
         "dropbox.api.nuspec",
         "lib/netstandard2.0/Dropbox.Api.dll",
         "lib/netstandard2.0/Dropbox.Api.xml"
+      ]
+    },
+    "MimeMapping/3.0.1": {
+      "sha512": "lhYcUVnWKaqrboAwi05YLCx3wdluM9Sr1Mv5Emhgc8c8yNVvdiSEnQJMdDvgb4grlYTaOmbnhYaezoeateX95w==",
+      "type": "package",
+      "path": "mimemapping/3.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net462/MimeMapping.dll",
+        "lib/net462/MimeMapping.xml",
+        "lib/netstandard2.0/MimeMapping.dll",
+        "lib/netstandard2.0/MimeMapping.xml",
+        "mimemapping.3.0.1.nupkg.sha512",
+        "mimemapping.nuspec"
       ]
     },
     "Newtonsoft.Json/13.0.2": {
@@ -80,7 +109,8 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "Dropbox.Api >= 7.0.0"
+      "Dropbox.Api >= 7.0.0",
+      "MimeMapping >= 3.0.1"
     ]
   },
   "packageFolders": {
@@ -95,6 +125,7 @@
       "packagesPath": "/home/aleks/.nuget/packages/",
       "outputPath": "/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/",
       "projectStyle": "PackageReference",
+      "UsingMicrosoftNETSdk": false,
       "configFilePaths": [
         "/home/aleks/.nuget/NuGet/NuGet.Config"
       ],
@@ -128,6 +159,10 @@
           "Dropbox.Api": {
             "target": "Package",
             "version": "[7.0.0, )"
+          },
+          "MimeMapping": {
+            "target": "Package",
+            "version": "[3.0.1, )"
           }
         },
         "imports": [

@@ -1,113 +1,125 @@
-using System;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
-using Dropbox.Api.Team;
-
+using System.Security.Cryptography;
+using Newtonsoft.Json.Linq;
 namespace RcloneClone;
 
 internal class SyncManager()
 {
-    private const string ApiKey = "hvi5da1228lcdqs";
-    private const string ApiSecret = "m5tngo1b0l54yy4";
-
     private const string OAuth2 =
-        "sl.CA_j5KMB_Q0WN60JD-H8kuI98bB1aQ9Pr7AfqFt_7CsR_dO6TTcckJ4VYQBrPsrKc5MKpHoLuFx2Fl8GsA6Gy_STIktqCgEln1wWw_naEAI_KJn7u1VVrEH8mhMcXAo2rMOd5Mfz4STZesKCrgkynEM";
-
-    public void UploadFolder(string folderLocation)
-    {
-
-    }
-
-    public void UploadFile(string fileLocation)
-    {
-
-    }
-
-    public async Task<bool> CheckConnection()
+        "";
+    public async Task<bool> UploadFile(string fileLocation, string mimeType)
     {
         using (var httpClient = new HttpClient())
         {
             using (var request =
-                   new HttpRequestMessage(new HttpMethod("POST"), "https://api.dropboxapi.com/2/check/user"))
+                   new HttpRequestMessage(new HttpMethod("POST"), "https://content.dropboxapi.com/2/files/upload"))
             {
-                request.Headers.TryAddWithoutValidation($"Authorization", $"Bearer {OAuth2}");
+                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {OAuth2}");
+                request.Headers.TryAddWithoutValidation("Dropbox-API-Arg",
+                    $"{{\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"{fileLocation}\",\"strict_conflict\":false}}");
 
-                request.Content = new StringContent("{\"query\":\"foo\"}");
-                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-
+                request.Content = new StringContent(File.ReadAllText(fileLocation));
+                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mimeType);
                 try
                 {
                     var response = await httpClient.SendAsync(request);
-                    return response.IsSuccessStatusCode;
+                    Console.WriteLine($"Uploading: {fileLocation}");
+                    var contents = response.ToString();
+                    
+                    if (contents.Contains("StatusCode: 200"))
+                    {
+                        Console.WriteLine($"Successfully uploaded: {fileLocation}");
+                        return response.IsSuccessStatusCode;
+                    }
+                    Console.WriteLine($"Failed to upload: {fileLocation}!");
+                    return false;
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
-                    return false;
+                    throw;
+                }
+
+            }
+        }
+    }
+
+    public async Task<string> CheckMetaData(string fileLocation)
+    {
+        using (var httpClient = new HttpClient())
+        {
+            using (var request = new HttpRequestMessage(new HttpMethod("POST"),
+                       "https://api.dropboxapi.com/2/files/get_metadata"))
+            {
+                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {OAuth2}");
+
+                request.Content =
+                    new StringContent(
+                        $"{{\"include_deleted\":false,\"include_has_explicit_shared_members\":false,\"include_media_info\":false,\"path\":\"{fileLocation}\"}}");
+                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+                try
+                {
+                    var response = await httpClient.SendAsync(request);
+                    var contents = response.Content.ReadAsStringAsync().Result;
+                    var contentHash = JObject.Parse(contents).SelectToken("$.content_hash").ToString();
+                    return contentHash;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"No metadata found on file {fileLocation}!");
+                    return "";
                 }
             }
         }
     }
-    public async Task<string> GetFolderInfo(string folderName)
+    public async Task<string> LocalMetaData(string fileLocation)
     {
-        bool status = await CheckConnection();
-        if (status)
+        byte[] fileContent;
+        using (FileStream fs = new FileStream(fileLocation, FileMode.Open, FileAccess.Read))
         {
-            using (var httpClient = new HttpClient())
-            {
-                using (var request =
-                       new HttpRequestMessage(new HttpMethod("POST"), "https://api.dropboxapi.com/2/files/list_folder"))
-                {
-                    request.Headers.TryAddWithoutValidation("Authorization",
-                        "Basic aHZpNWRhMTIyOGxjZHFzOm01dG5nbzFiMGw1NHl5NA==");
-
-                    request.Content = new StringContent(
-                        $"{{\"include_deleted\":false,\"include_has_explicit_shared_members\":false,\"include_media_info\":false,\"include_mounted_folders\":true,\"include_non_downloadable_files\":true,\"path\":\"/{folderName}\",\"recursive\":true}}");
-                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                    try
-                    {
-                        var response = await httpClient.SendAsync(request);
-                        Console.WriteLine(response.ToString());
-                        return response.ToString();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        throw;
-                    }
-
-                }
-            }
+            fileContent = new byte[fs.Length];
+            await fs.ReadAsync(fileContent, 0, fileContent.Length);
         }
-        return "failed!";
+        byte[][] chunks = DivideArray(fileContent, 4 * 1024 * 1024);
+        return ArrayToDropboxMetaData(chunks);
+    }
+    public static byte[][] DivideArray(byte[] source, int chunkSize)
+    {
+        int numberOfChunks = (int)Math.Ceiling(source.Length / (double)chunkSize);
+        byte[][] ret = new byte[numberOfChunks][];
+        int start = 0;
+        for (int i = 0; i < numberOfChunks; i++)
+        {
+            int currentChunkSize = Math.Min(chunkSize, source.Length - start);
+            ret[i] = new byte[currentChunkSize];
+            Array.Copy(source, start, ret[i], 0, currentChunkSize);
+            start += chunkSize;
+        }
+        return ret;
+    }
+    public static string ArrayToDropboxMetaData(byte[][] byteArray)
+    {
+        using (SHA256 sha256 = SHA256.Create())
+        {
+            List<byte> concatenatedHashes = new List<byte>();
+            foreach (byte[] chunk in byteArray)
+            {
+                byte[] hashValue = sha256.ComputeHash(chunk);
+                concatenatedHashes.AddRange(hashValue);
+            }
+            byte[] finalHash = sha256.ComputeHash(concatenatedHashes.ToArray());
+            return BitConverter.ToString(finalHash).Replace("-", "").ToLower();
+        }
     }
 
-    public async Task CreateFolder(string folderName)
+    public async Task<bool> CompareMetaData(string fileLocation)
     {
-        bool status = await CheckConnection();
-        if (status)
+        string localFile = await LocalMetaData(fileLocation);
+        string dropBoxFile = await CheckMetaData(fileLocation);
+        if (localFile == dropBoxFile)
         {
-            using (var httpClient = new HttpClient())
-            {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.dropboxapi.com/2/files/create_folder_v2"))
-                {
-                    request.Headers.TryAddWithoutValidation("Authorization", "Bearer sl.CA_j5KMB_Q0WN60JD-H8kuI98bB1aQ9Pr7AfqFt_7CsR_dO6TTcckJ4VYQBrPsrKc5MKpHoLuFx2Fl8GsA6Gy_STIktqCgEln1wWw_naEAI_KJn7u1VVrEH8mhMcXAo2rMOd5Mfz4STZesKCrgkynEM"); 
-
-                    request.Content = new StringContent($"{{\"autorename\":false,\"path\":\"/{folderName}\"}}");
-                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                    try
-                    {
-                        var response = await httpClient.SendAsync(request);
-                        Console.WriteLine(response.ToString());
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        throw;
-                    }
-                }
-            }
+            return true;
         }
+        return false;
     }
 }

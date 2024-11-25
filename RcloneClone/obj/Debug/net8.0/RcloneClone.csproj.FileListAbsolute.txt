@@ -9,3 +9,4 @@
 /var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/refint/RcloneClone.dll
 /var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.pdb
 /var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.csproj.AssemblyReference.cache
+/var/home/aleks/RiderProjects/RcloneClone/RcloneClone/obj/Debug/net8.0/RcloneClone.sourcelink.json
