@@ -4,6 +4,8 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using Dropbox.Api.FileRequests;
+using MimeMapping;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace RcloneClone;
@@ -68,7 +70,8 @@ public class Dropbox : Manager
         {
             uploadDropboxLocation += uploadDropboxLocationArray[i]+"/";
         }
-        
+
+        uploadDropboxLocation = uploadDropboxLocation.Remove(uploadDropboxLocation.Length-1);
         using (var httpClient = new HttpClient())
         {
             using (var request =
@@ -77,21 +80,8 @@ public class Dropbox : Manager
                 request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {OAuth2}");
                 request.Headers.TryAddWithoutValidation("Dropbox-API-Arg",
                     $"{{\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"{uploadDropboxLocation}\",\"strict_conflict\":false}}");
-                //request.Content = new StringContent(await File.ReadAllTextAsync(@fileLocation));
-
-                string fileContent = "";
-                FileStream fileStream = new FileStream(fileLocation, FileMode.Open, FileAccess.Read);
-                using (fileStream = File.OpenRead(fileLocation))
-                {
-                    byte[] b = new byte[1024];
-                    UTF8Encoding temp = new UTF8Encoding(true);
-                    int readLen;
-                    while ((readLen = fileStream.Read(b,0,b.Length)) > 0)
-                    {
-                        fileContent += temp.GetString(b, 0, readLen);
-                    }
-                }
-                request.Content = new StringContent(fileContent);
+                byte[] fileBytes = await File.ReadAllBytesAsync(fileLocation);
+                request.Content = new ByteArrayContent(fileBytes);
                 request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mimeType);
                 try
                 {
@@ -120,7 +110,6 @@ public class Dropbox : Manager
     {
         return "";
     }
-
     public async Task<string> GetFiles(string folder)
     {
         using (var httpClient = new HttpClient())
@@ -214,6 +203,71 @@ public class Dropbox : Manager
             }
             byte[] finalHash = sha256.ComputeHash(concatenatedHashes.ToArray());
             return BitConverter.ToString(finalHash).Replace("-", "").ToLower();
+        }
+    }
+    public async Task<string> SyncSelection()
+    {
+        string locationDecision = "";
+        Stack<string> currentDirectory = new Stack<string>();
+        currentDirectory.Push("");
+        while (true)
+        {
+            string dropboxFilesRequest = await GetFiles(currentDirectory.Peek());
+            DropboxFile dropboxFileResponse = JsonConvert.DeserializeObject<DropboxFile>(dropboxFilesRequest);
+            Console.Clear();
+            for (int i = 0; i < dropboxFileResponse.Entries.Count; i++)
+            {
+                Console.WriteLine(dropboxFileResponse.GetName(i).name);
+            }
+            locationDecision = Console.ReadLine();
+            if (locationDecision == "-sync")
+            {
+                var directoryString = String.Join("/", currentDirectory);
+                return directoryString;
+            }
+            else if (locationDecision == "/")
+            {
+                currentDirectory.Pop();
+            }
+            else
+            {
+                currentDirectory.Push("/"+locationDecision);
+            }
+        }
+    }
+    public async Task UploadSelection(string path, string uploadLocationId)
+    {
+        Console.Clear();
+        int successfulyUploaded = 0;
+        int failedToUpload = 0;
+        string mimeType = "";
+        foreach (string file in Directory.EnumerateFiles(Path.Combine(path), "*.*",
+                     SearchOption.AllDirectories))
+        {
+            mimeType = MimeUtility.GetMimeMapping(file);
+            var metaData = await CompareMetaData(file,uploadLocationId);
+            if (metaData.status==false)
+            {
+                var status = await UploadFile(file,uploadLocationId,mimeType);
+                if (status.status)
+                {
+                    successfulyUploaded++;
+                }
+                else if(status.status==false)
+                {
+                    failedToUpload++;
+                }
+            }
+        }
+        if (failedToUpload==0)
+        {
+            Console.WriteLine($"Successfully synced all files in {path}! Uploaded {successfulyUploaded} files.");
+            Console.ReadKey();
+        }
+        else if (failedToUpload>0)
+        {
+            Console.WriteLine($"Failed to sync all files in the directory, {failedToUpload} files failed to upload!");
+            Console.ReadKey();
         }
     }
 }

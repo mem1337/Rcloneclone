@@ -30,6 +30,16 @@ public class SyncClass
         {
             await _manager.GetBearerToken();
         }
+        public async Task<string> SyncSelection()
+        {
+            string result = await _manager.SyncSelection();
+            Console.WriteLine(result);
+            return result;
+        }
+        public async Task UploadSelection(string path, string uploadLocationId)
+        {
+            await UploadSelection(path, uploadLocationId);
+        }
     }
 }
 public interface Manager
@@ -39,4 +49,6 @@ public interface Manager
     public Task<string> GetFolderID(string location, string folderID);
     public Task<(bool status, string newFolderID)> CompareMetaData(string fileLocation, string folderID);
     public Task GetBearerToken();
+    public Task<string> SyncSelection();
+    public Task UploadSelection(string path, string uploadLocationId);
 }

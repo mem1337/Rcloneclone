@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using MimeMapping;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -60,7 +61,6 @@ public class Google : Manager
             }
         }
     }
-
     public async Task<(bool status, string newFolderID)> UploadFile(string fileLocation, string folderID, string mimeType)
     {
         var fileLocationArray = fileLocation.Split("/");
@@ -127,7 +127,6 @@ public class Google : Manager
             return (false, newFolderID);
         }
     }
-
     public async Task<string> GetFiles(string folderId)
     {
         using (var httpClient = new HttpClient())
@@ -143,7 +142,6 @@ public class Google : Manager
             }
         }
     }
-
     public async Task<string> GetFolderID(string location,string folderID)
     {
         string requestUri = $"https://www.googleapis.com/drive/v3/files?q=%27{folderID}%27%20in%20parents";
@@ -180,5 +178,71 @@ public class Google : Manager
             }
         }
         return folderID;
+    }
+    public async Task<string> SyncSelection()
+    {
+        string uploadLocationId = "";
+        string locationDecision = "";
+        Stack<string> currentDirectory = new Stack<string>();
+        currentDirectory.Push("root");
+        string googleFilesRequest = await GetFiles(currentDirectory.Peek());
+        GoogleFileResponse? googleFileResponse = JsonConvert.DeserializeObject<GoogleFileResponse>(googleFilesRequest);
+        while (true)
+        {
+            Console.Clear();
+            googleFilesRequest = await GetFiles(currentDirectory.Peek());
+            googleFileResponse = JsonConvert.DeserializeObject<GoogleFileResponse>(googleFilesRequest);
+                    
+            for (int i = 0; i < googleFileResponse.Files.Count; i++)
+            {
+                Console.WriteLine(googleFileResponse.GetName(i).name);
+            }
+            locationDecision = Console.ReadLine();
+            if (locationDecision == "-sync")
+            {
+                uploadLocationId = currentDirectory.Peek();
+                return uploadLocationId;
+            }
+            else if (locationDecision == "/")
+            {
+                currentDirectory.Pop();
+            }
+            else
+            {
+                currentDirectory.Push(await GetFolderID(locationDecision, currentDirectory.Peek()));
+            }
+        }
+    }
+    public async Task UploadSelection(string path, string uploadLocationId)
+    {
+        int successfulyUploaded = 0;
+        int failedToUpload = 0;
+        var mimeType = "";
+                
+        foreach (string file in Directory.EnumerateFiles(Path.Combine(path), "*.*",
+                     SearchOption.AllDirectories))
+        {
+            mimeType = MimeUtility.GetMimeMapping(file);
+            var status = await UploadFile(file, uploadLocationId, mimeType); 
+            if (status.status) 
+            { 
+                successfulyUploaded++;
+            }
+            else if(status.status==false) 
+            { 
+                failedToUpload++;
+            }
+            uploadLocationId = status.newFolderID;
+        }
+        if (failedToUpload==0)
+        {
+            Console.WriteLine($"Successfully synced all files in {path}! Uploaded {successfulyUploaded} files.");
+            Console.ReadKey();
+        }
+        else if (failedToUpload>0)
+        {
+            Console.WriteLine($"Failed to sync all files in the directory, {failedToUpload} files failed to upload!");
+            Console.ReadKey();
+        }
     }
 }
