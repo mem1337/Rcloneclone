@@ -44,7 +44,7 @@ public class Program
                 DropboxOopsie.SetIndex(pathSplit.Length-1);
                 
                 uploadLocationId = await syncManager.SyncSelection();
-                //Console.Clear();
+                Console.Clear();
                 await syncManager.UploadSelection(path,uploadLocationId); 
                 break;
             }

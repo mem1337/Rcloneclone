@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RcloneClone")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c24b6770d37a9d22b170becd689273f382c17f95")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f4daacfe8d8f1db04d69ac97f863858f7c264ac7")]
 [assembly: System.Reflection.AssemblyProductAttribute("RcloneClone")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RcloneClone")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -32,13 +32,12 @@ public class SyncClass
         }
         public async Task<string> SyncSelection()
         {
-            string result = await _manager.SyncSelection();
-            Console.WriteLine(result);
+            var result = await _manager.SyncSelection();
             return result;
         }
         public async Task UploadSelection(string path, string uploadLocationId)
         {
-            await UploadSelection(path, uploadLocationId);
+            await _manager.UploadSelection(path, uploadLocationId);
         }
     }
 }
