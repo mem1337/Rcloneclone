@@ -65,13 +65,13 @@ public class Dropbox : Manager
         var uploadFolderIndex = DropboxOopsie.GetIndex();
         var fileLocationArray = fileLocation.Split(@"\");
         var uploadDropboxLocationArray = fileLocationArray[uploadFolderIndex..];
-        string? uploadDropboxLocation = "/";
+        string? uploadDropboxLocation = "1";
         for (int i = 0; i < uploadDropboxLocationArray.Length; i++)
         {
             uploadDropboxLocation += uploadDropboxLocationArray[i]+"/";
         }
 
-        uploadDropboxLocation = uploadDropboxLocation.Remove(uploadDropboxLocation.Length-1);
+        uploadDropboxLocation = uploadDropboxLocation.Remove(uploadDropboxLocation.Length - 1);
         using (var httpClient = new HttpClient())
         {
             using (var request =
@@ -79,7 +79,7 @@ public class Dropbox : Manager
             {
                 request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {OAuth2}");
                 request.Headers.TryAddWithoutValidation("Dropbox-API-Arg",
-                    $"{{\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"{uploadDropboxLocation}\",\"strict_conflict\":false}}");
+                    $"{{\"autorename\":false,\"mode\":\"add\",\"mute\":false,\"path\":\"{folderID}{uploadDropboxLocation}\",\"strict_conflict\":false}}");
                 byte[] fileBytes = await File.ReadAllBytesAsync(fileLocation);
                 request.Content = new ByteArrayContent(fileBytes);
                 request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(mimeType);
@@ -130,7 +130,7 @@ public class Dropbox : Manager
     public async Task<(bool status, string newFolderID)> CompareMetaData(string fileLocation, string folderID)
     {
         string localFile = await LocalMetaData(fileLocation);
-        string dropBoxFile = await CheckMetaData(fileLocation);
+        string dropBoxFile = await CheckMetaData(fileLocation, folderID);
         if (localFile == dropBoxFile)
         {
             Console.WriteLine($"Metadata match on file {fileLocation}");
@@ -138,8 +138,17 @@ public class Dropbox : Manager
         }
         return (false,"");
     }
-    private async Task<string> CheckMetaData(string fileLocation)
+    private async Task<string> CheckMetaData(string fileLocation, string folderID)
     {
+        var uploadFolderIndex = DropboxOopsie.GetIndex();
+        var fileLocationArray = fileLocation.Split(@"\");
+        var uploadDropboxLocationArray = fileLocationArray[uploadFolderIndex..];
+        string? uploadDropboxLocation = "";
+        for (int i = 0; i < uploadDropboxLocationArray.Length; i++)
+        {
+            uploadDropboxLocation += uploadDropboxLocationArray[i]+"/";
+        }
+        uploadDropboxLocation = uploadDropboxLocation.Remove(uploadDropboxLocation.Length-1);
         using (var httpClient = new HttpClient())
         {
             using (var request = new HttpRequestMessage(new HttpMethod("POST"),
@@ -149,7 +158,7 @@ public class Dropbox : Manager
 
                 request.Content =
                     new StringContent(
-                        $"{{\"include_deleted\":false,\"include_has_explicit_shared_members\":false,\"include_media_info\":false,\"path\":\"{fileLocation}\"}}");
+                        $"{{\"include_deleted\":false,\"include_has_explicit_shared_members\":false,\"include_media_info\":false,\"path\":\"{folderID}{uploadDropboxLocation}\"}}");
                 request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
                 try
                 {

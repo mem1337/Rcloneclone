@@ -63,12 +63,11 @@ public class Google : Manager
     }
     public async Task<(bool status, string newFolderID)> UploadFile(string fileLocation, string folderID, string mimeType)
     {
-        var fileLocationArray = fileLocation.Split("/");
+        var fileLocationArray = fileLocation.Split(@"\");
         var fileName = fileLocationArray[^1];
         var fileDestination = fileLocationArray[^2];
         var uploadTo = await GetFolderID(fileDestination, folderID);
         string newFolderID = "";
-        Console.WriteLine($"{fileLocation}, {fileDestination}, {fileName}");
 
         if (uploadTo!=folderID)
         {
