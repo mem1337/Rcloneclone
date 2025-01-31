@@ -16,6 +16,7 @@ public class Dropbox : Manager
     private string ClientSecret = Environment.GetEnvironmentVariable("DClientSecret");
     private string? AuthorizationCode;
     private string? OAuth2;
+    private int UploadIndex;
     
     public async Task GetBearerToken()
     {
@@ -62,10 +63,9 @@ public class Dropbox : Manager
     }
     public async Task<(bool status, string newFolderID)> UploadFile(string fileLocation, string folderID, string mimeType)
     {
-        var uploadFolderIndex = DropboxOopsie.GetIndex();
         var fileLocationArray = fileLocation.Split(@"\");
-        var uploadDropboxLocationArray = fileLocationArray[uploadFolderIndex..];
-        string? uploadDropboxLocation = "1";
+        var uploadDropboxLocationArray = fileLocationArray[UploadIndex..];
+        string? uploadDropboxLocation = "";
         for (int i = 0; i < uploadDropboxLocationArray.Length; i++)
         {
             uploadDropboxLocation += uploadDropboxLocationArray[i]+"/";
@@ -140,9 +140,8 @@ public class Dropbox : Manager
     }
     private async Task<string> CheckMetaData(string fileLocation, string folderID)
     {
-        var uploadFolderIndex = DropboxOopsie.GetIndex();
         var fileLocationArray = fileLocation.Split(@"\");
-        var uploadDropboxLocationArray = fileLocationArray[uploadFolderIndex..];
+        var uploadDropboxLocationArray = fileLocationArray[UploadIndex..];
         string? uploadDropboxLocation = "";
         for (int i = 0; i < uploadDropboxLocationArray.Length; i++)
         {
@@ -278,6 +277,10 @@ public class Dropbox : Manager
             Console.WriteLine($"Failed to sync all files in the directory, {failedToUpload} files failed to upload!");
             Console.ReadKey();
         }
+    }
+    public void UploadPathIndex(int index)
+    {
+        UploadIndex = index;
     }
 }
 

@@ -39,6 +39,11 @@ public class SyncClass
         {
             await _manager.UploadSelection(path, uploadLocationId);
         }
+
+        public void UploadPathIndex(int index)
+        {
+            _manager.UploadPathIndex(index);
+        }
     }
 }
 public interface Manager
@@ -50,4 +55,5 @@ public interface Manager
     public Task GetBearerToken();
     public Task<string> SyncSelection();
     public Task UploadSelection(string path, string uploadLocationId);
+    public void UploadPathIndex(int index);
 }

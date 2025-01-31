@@ -14,6 +14,7 @@ public class Google : Manager
     private string ClientSecret = Environment.GetEnvironmentVariable("GClientSecret");
     private string? AuthorizationCode;
     private string? OAuth2;
+    private int UploadIndex;
 
     public async Task<(bool status, string newFolderID)> CompareMetaData(string a, string b)
     {
@@ -243,5 +244,13 @@ public class Google : Manager
             Console.WriteLine($"Failed to sync all files in the directory, {failedToUpload} files failed to upload!");
             Console.ReadKey();
         }
+    }
+    public void UploadPathIndex(int index)
+    {
+        UploadIndex = index;
+    }
+    public async Task AlternativeUpload(string fileLocation, string folderID, string mimeType)
+    {
+        
     }
 }

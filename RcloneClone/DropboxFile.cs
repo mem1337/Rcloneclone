@@ -1,19 +1,4 @@
 ﻿namespace RcloneClone;
-
-public static class DropboxOopsie
-{
-    public static int Index;
-
-    public static void SetIndex(int index)
-    {
-        Index = index;
-    }
-
-    public static int GetIndex()
-    {
-        return Index;
-    }
-}
 public class DropboxFile
 {
     public string Cursor { get; set; }
@@ -43,7 +28,6 @@ public class Entry
     public List<PropertyGroup> PropertyGroups { get; set; }
     public SharingInfo SharingInfo { get; set; }
 }
-
 public class FileEntry : Entry
 {
     public DateTime ClientModified { get; set; }
@@ -54,7 +38,6 @@ public class FileEntry : Entry
     public DateTime ServerModified { get; set; }
     public long Size { get; set; }
 }
-
 public class FolderEntry : Entry
 {
     public bool NoAccess { get; set; }

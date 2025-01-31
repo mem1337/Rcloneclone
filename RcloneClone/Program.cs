@@ -9,7 +9,7 @@ public class Program
     {
         Manager manager = null;
         string path = @"C:\Users\aleks";
-
+        start:
         Console.WriteLine("1. Dropbox 2. GDrive");
         string? decision = Console.ReadLine();
         switch (decision)
@@ -38,15 +38,13 @@ public class Program
             else if (userInput == "-sync")
             {
                 string uploadLocationId = "";
-                
-                //Fixing my dropbox upload path mistake
+                //Set upload path index
                 var pathSplit = path.Split(@"\");
-                DropboxOopsie.SetIndex(pathSplit.Length-1);
-                
+                syncManager.UploadPathIndex(pathSplit.Length-1);
                 uploadLocationId = await syncManager.SyncSelection();
                 Console.Clear();
-                await syncManager.UploadSelection(path,uploadLocationId); 
-                break;
+                await syncManager.UploadSelection(path,uploadLocationId);
+                goto start;
             }
         }
     }
